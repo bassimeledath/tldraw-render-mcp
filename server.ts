@@ -271,6 +271,18 @@ ALWAYS start with a \`cameraUpdate\` as the FIRST element.
 - Arrow labels longer than ~8 characters may truncate on short arrows. Use a separate \`text\` shape near the midpoint for longer annotations
 - Minimum shape width to avoid word-breaks: approximately \`character_count * 15 + 30\` pixels for \`size: "m"\` \`font: "sans"\`
 
+## Pattern: Sequence Diagrams
+- **Lifelines**: unbounded vertical dashed arrows — \`dash: "dashed"\`, \`arrowheadStart: "none"\`, \`arrowheadEnd: "none"\`, NO \`bind\`
+- **Messages**: unbounded horizontal arrows at specific y-offsets, anchored to lifeline x-coordinates. NO \`bind\` — use coordinate positioning
+- **Left-pointing messages**: use negative \`end.x\` values (e.g., \`"end": {"x": -160, "y": 0}\`)
+- Color-code: blue for requests (rightward), green for responses (leftward)
+
+## Pattern: Mind Maps (Radial Layout)
+- **Center**: \`cloud\` geo shape with large dimensions (w:200+, h:120+), \`size: "l"\`
+- **Branches**: \`ellipse\` shapes, connected with arrows using \`bend: 30-40\` for curved spokes
+- **Leaves**: \`rectangle\` shapes, connected with \`bend: 12-18\` for subtle curves
+- Space branches 400+ px apart radially from center
+
 ## Common Mistakes
 - **Forgetting cameraUpdate** — without it the export may have wrong dimensions
 - **Using hex colors** — tldraw uses named colors only (\`blue\`, \`red\`, etc.)
