@@ -194,59 +194,45 @@ const BROWSER_INIT_SCRIPT = `
 
     var svgMarkup = result.svg;
 
-    // If viewport specified, adjust the SVG viewBox and dimensions
+    // If viewport specified, use it for output dimensions but ensure all content is visible.
+    // The viewport acts as a minimum size, auto-expanding if shapes extend beyond it.
     if (viewport) {
       var parser = new DOMParser();
       var doc = parser.parseFromString(svgMarkup, "image/svg+xml");
       var svg = doc.documentElement;
 
-      // Get the original viewBox to understand coordinate mapping
-      var origViewBox = svg.getAttribute("viewBox");
-      var origW = parseFloat(svg.getAttribute("width") || result.width);
-      var origH = parseFloat(svg.getAttribute("height") || result.height);
-
-      if (origViewBox) {
-        var parts = origViewBox.split(/[\\s,]+/).map(Number);
-        var vbX = parts[0], vbY = parts[1], vbW = parts[2], vbH = parts[3];
-
-        // Calculate the scale from scene coords to SVG viewBox coords
-        // The exported SVG's viewBox maps to the bounding box of all shapes + padding
-        // We need to figure out the scene-space bounds of the export
-        var minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
-        for (var si = 0; si < drawShapes.length; si++) {
-          var ds = drawShapes[si];
-          var sx = ds.x || 0;
-          var sy = ds.y || 0;
-          var sw = (ds.props && ds.props.w) || 100;
-          var sh = (ds.props && ds.props.h) || 100;
-          minX = Math.min(minX, sx);
-          minY = Math.min(minY, sy);
-          maxX = Math.max(maxX, sx + sw);
-          maxY = Math.max(maxY, sy + sh);
-        }
-
-        var sceneW = maxX - minX;
-        var sceneH = maxY - minY;
-
-        if (sceneW > 0 && sceneH > 0) {
-          // Scale factor from scene coords to viewBox coords
-          var scaleX = (vbW - 2 * EXPORT_PADDING) / sceneW;
-          var scaleY = (vbH - 2 * EXPORT_PADDING) / sceneH;
-
-          // Map viewport scene coords to viewBox coords
-          var cropX = vbX + EXPORT_PADDING + (viewport.x - minX) * scaleX;
-          var cropY = vbY + EXPORT_PADDING + (viewport.y - minY) * scaleY;
-          var cropW = viewport.width * scaleX;
-          var cropH = viewport.height * scaleY;
-
-          svg.setAttribute("viewBox", cropX + " " + cropY + " " + cropW + " " + cropH);
-        }
+      // Compute scene-space bounding box of all shapes
+      var minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+      for (var si = 0; si < drawShapes.length; si++) {
+        var ds = drawShapes[si];
+        var sx = ds.x || 0;
+        var sy = ds.y || 0;
+        var sw = (ds.props && ds.props.w) || 100;
+        var sh = (ds.props && ds.props.h) || 100;
+        minX = Math.min(minX, sx);
+        minY = Math.min(minY, sy);
+        maxX = Math.max(maxX, sx + sw);
+        maxY = Math.max(maxY, sy + sh);
       }
 
-      // Set output dimensions
+      // Auto-expand viewport to union of camera bounds and shape bounds (with padding)
+      var PAD = 40;
+      var fitX = Math.min(viewport.x, minX - PAD);
+      var fitY = Math.min(viewport.y, minY - PAD);
+      var fitRight = Math.max(viewport.x + viewport.width, maxX + PAD);
+      var fitBottom = Math.max(viewport.y + viewport.height, maxY + PAD);
+      var fitW = fitRight - fitX;
+      var fitH = fitBottom - fitY;
+
+      // Use tldraw's native SVG export as-is (it already includes all shapes with padding)
+      // and only set the output pixel dimensions based on the fit bounds
       var scale = options.scale || 2;
-      svg.setAttribute("width", String(viewport.width * scale));
-      svg.setAttribute("height", String(viewport.height * scale));
+      var aspectRatio = fitW / fitH;
+      var outW = Math.round(fitW * scale);
+      var outH = Math.round(fitH * scale);
+
+      svg.setAttribute("width", String(outW));
+      svg.setAttribute("height", String(outH));
 
       svgMarkup = new XMLSerializer().serializeToString(svg);
     } else {
