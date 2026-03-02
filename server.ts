@@ -184,36 +184,20 @@ Example: A shape at \`x: 30, y: 40\` inside a frame at \`x: 200, y: 100\` appear
 \`\`\`
 The \`src\` prop accepts HTTP URLs or base64 data URLs (\`data:image/png;base64,...\`). The renderer auto-creates tldraw asset records. MIME type is inferred from the URL extension. Both \`w\` and \`h\` are required — match the source image's aspect ratio to avoid stretching.
 
-## Pattern: Screenshot Annotation (IMPORTANT — follow closely)
-To create clean annotated screenshots/images with callout arrows:
+## Annotated UI Diagrams
 
-**Layout rules:**
-1. Place the image/UI on the LEFT. Size the canvas so the image fills at least 55% of the width. For a 375px phone UI, use a canvas width of ~700px, not 1000px.
-2. Place ALL callout labels in a single vertical column on the right, spaced 80-100px apart (center-to-center). CRITICAL: each label's y-position must be CLOSE to the vertical center of its target highlight (within ±30px). This keeps arrows nearly horizontal and prevents crossing. For dense annotations (5+ labels), increase spacing to 120px.
-3. Each callout is a short \`text\` shape (2-5 words max) — NOT a note or geo box.
-4. Draw ONE arrow per callout, from the label to the highlight box, using \`bind\`. Do NOT put text on the arrows — unlabeled arrows are cleaner. If arrows are <40px apart vertically, omit any arrow text.
-5. Highlight boxes must be SMALL — prefer 80x40 as the default size. Use 60x30 for single values, never exceed 100x50. They pinpoint a specific element (a button, a heading, a value), NOT wrap an entire section.
-6. Highlight boxes must NOT overlap AND must have at least 10px clear space between them. Never share an edge coordinate with another box.
-7. Use only 1-2 highlight colors (red for primary, orange for secondary).
-8. Keep arrows short and nearly horizontal. Use slight \`bend\` (10-15) to separate arrows that are close vertically.
+**STRICT RULE: NEVER overlay shapes on top of raster images (screenshots, photos, base64 PNGs).**
+LLMs cannot see the rendered image, so pixel-coordinate guessing for highlight boxes and arrows produces poor results. Instead, **rebuild the UI as a schematic using tldraw shapes**, then annotate that.
 
-**What NOT to do:**
-- Do NOT place labels on multiple sides of the image — pick ONE side (right is best)
-- Do NOT use note/sticky shapes as callouts — they're too bulky
-- Do NOT highlight more than 4-5 regions
-- Do NOT wrap entire sections in highlight boxes — highlight a specific element INSIDE the section
-- Do NOT make highlight boxes larger than 120px wide — smaller is better
-- Do NOT make the canvas much wider than needed — the UI must dominate the frame
-- Do NOT place arrows that cross each other — align each label's y to its target's y
+**How to annotate a UI:**
+1. **Recreate the UI structure** using \`geo\` rectangles, \`text\` shapes, and \`frame\` shapes. Build a simplified wireframe — you don't need pixel-perfect fidelity, just recognizable structure (header bar, sidebar, content area, buttons, etc.).
+2. **Use color and fill** to distinguish sections: \`fill: "solid"\` with \`color: "light-blue"\` for interactive elements, \`"grey"\` for backgrounds, \`"white"\` for content areas.
+3. **Add annotations** as \`text\` shapes (2-5 words) in a column to the right, connected by \`arrow\` shapes with \`bind\` to the target elements. Since YOU built every shape, bindings land exactly where intended.
+4. Use \`color: "red"\` for annotation arrows and labels to visually separate them from the UI wireframe.
 
-**Example layout (arrows stay horizontal because label y tracks target y):**
-\`\`\`
-[  UI (55%+ width)  ]  <-- "Nav Bar"       (y ≈ navbar.cy)
-[                    ]  <-- "Search Box"    (y ≈ search.cy)
-[                    ]  <-- "Main Content"  (y ≈ content.cy)
-[                    ]  <-- "Footer"        (y ≈ footer.cy)
-Small highlights (≤120px). Min 80px between labels. Min 10px between boxes.
-\`\`\`
+**Why this works:** The LLM controls every shape's position, so arrows connect precisely. No blind guessing over opaque images.
+
+**When to use the \`image\` shape type:** Only for content images that ARE the diagram subject (e.g., a photo gallery layout, an image comparison tool) — never as a background to annotate over.
 
 ---
 
