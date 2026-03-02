@@ -78,20 +78,10 @@ const BROWSER_INIT_SCRIPT = `
   function resizeSvg(markup, newW, newH) {
     const doc = new DOMParser().parseFromString(markup, "image/svg+xml");
     const svg = doc.documentElement;
-    const oldW = parseFloat(svg.getAttribute("width") || "0");
-    const oldH = parseFloat(svg.getAttribute("height") || "0");
     svg.setAttribute("width", String(newW));
     svg.setAttribute("height", String(newH));
-    // If there's a viewBox, scale it proportionally
-    const vb = svg.getAttribute("viewBox");
-    if (vb && oldW && oldH) {
-      const parts = vb.split(/[\\s,]+/).map(Number);
-      if (parts.length === 4) {
-        const scaleX = newW / oldW;
-        const scaleY = newH / oldH;
-        svg.setAttribute("viewBox", parts[0] + " " + parts[1] + " " + (parts[2] * scaleX) + " " + (parts[3] * scaleY));
-      }
-    }
+    // Keep viewBox unchanged — increasing width/height while keeping
+    // the same viewBox renders the same content at higher pixel density
     return new XMLSerializer().serializeToString(svg);
   }
 
@@ -336,6 +326,15 @@ export async function renderToPng(
 
   const svgLocator = page.locator("#canvas > svg");
   await svgLocator.waitFor({ state: "visible", timeout: 10_000 });
+
+  // Resize viewport to accommodate the full SVG so Playwright renders at full resolution
+  const svgBox = await svgLocator.boundingBox();
+  if (svgBox) {
+    await page.setViewportSize({
+      width: Math.max(Math.ceil(svgBox.x + svgBox.width + 20), 1920),
+      height: Math.max(Math.ceil(svgBox.y + svgBox.height + 20), 1080),
+    });
+  }
 
   const dest = resolveOutput(outputPath, "png");
   await svgLocator.screenshot({ path: dest, type: "png" });

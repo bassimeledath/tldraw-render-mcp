@@ -262,7 +262,7 @@ ALWAYS start with a \`cameraUpdate\` as the FIRST element.
 - Leave padding between content and camera edges (50-80px minimum)
 - Draw background shapes first, then foreground — array order = z-order
 - WARNING: \`"size": "s"\` text is unreadable in diagrams wider than 800px. Use \`"m"\` or \`"l"\` for Camera L or larger.
-- **Hub nodes** (shapes with 4+ arrows): increase shape size (w:250+), space neighbors 400+ px apart, keep arrow labels to 1-3 words, or use \`size: "s"\` for arrow text in dense areas
+- **Hub nodes** (shapes with 4+ arrows): increase shape size (w:250+), space neighbors 400+ px apart, keep arrow labels to 1-3 words, or use \`size: "s"\` for arrow text in dense areas. For scheduler/fan-out patterns, use bend deltas of 40+ or stagger targets vertically by 30-40px
 - For multi-line text in \`mono\` font, set shape height to approximately (number of lines * 28) + 40 for \`size: "m"\`
 - Frame name labels are small by default. For important section labels, add a separate \`text\` shape with \`size: "l"\` above or inside the frame
 - **Dense arrow crossings** between two rows: increase the gap between rows to 120-150px, use \`size: "s"\` for arrows, or use a shared "bus" shape instead of N*M individual arrows
