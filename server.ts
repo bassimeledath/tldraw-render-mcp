@@ -66,6 +66,10 @@ Use these exact string names in the \`color\` prop.
 ### font
 \`draw\` | \`sans\` | \`serif\` | \`mono\`
 
+### Text Alignment (geo shapes)
+\`align\`: \`start\` | \`middle\` | \`end\` — horizontal text alignment within the shape
+\`verticalAlign\`: \`start\` | \`middle\` | \`end\` — vertical text alignment within the shape
+
 ---
 
 ## Arrowhead Types
@@ -153,6 +157,9 @@ When using \`bind\`, the start/end props are still needed as fallback positions 
 }
 \`\`\`
 
+**IMPORTANT:** When a shape has \`parentId\` set to a frame's ID, its \`x,y\` coordinates are RELATIVE to the frame's top-left corner, not the canvas origin.
+Example: A shape at \`x: 30, y: 40\` inside a frame at \`x: 200, y: 100\` appears at canvas position (230, 140).
+
 ---
 
 ## cameraUpdate (viewport control)
@@ -177,7 +184,7 @@ Use as the FIRST element to set output dimensions. Not a real tldraw shape — i
 - Camera **XL**: width 1200, height 900 — large overview. WARNING: small text unreadable
 - Camera **XXL**: width 1600, height 1200 — panorama. WARNING: minimum readable font size is \`xl\`
 
-ALWAYS use one of these exact sizes. Non-4:3 viewports cause distortion.
+These are recommended defaults. Choose dimensions that match your content's aspect ratio — portrait (e.g., 800x1400) works for tall flowcharts, wide (e.g., 1400x800) for horizontal layouts.
 
 ALWAYS start with a \`cameraUpdate\` as the FIRST element.
 
@@ -243,6 +250,7 @@ ALWAYS start with a \`cameraUpdate\` as the FIRST element.
 - The \`size\` prop affects stroke width and text size (\`s\`/\`m\`/\`l\`/\`xl\`)
 - Leave padding between content and camera edges (50-80px minimum)
 - Draw background shapes first, then foreground — array order = z-order
+- WARNING: \`"size": "s"\` text is unreadable in diagrams wider than 800px. Use \`"m"\` or \`"l"\` for Camera L or larger.
 
 ## Common Mistakes
 - **Forgetting cameraUpdate** — without it the export may have wrong dimensions
@@ -250,6 +258,7 @@ ALWAYS start with a \`cameraUpdate\` as the FIRST element.
 - **Using \`width\`/\`height\` on geo shapes** — use \`w\`/\`h\` in props instead
 - **Overlapping elements** — check x,y coordinates carefully so shapes don't stack
 - **Missing bind targets** — ensure the IDs in \`bind\` match actual shape IDs
+- **Using scene coordinates for frame children** — shapes with \`parentId\` use coordinates relative to the parent frame's top-left, not the canvas origin
 `;
 
 /**

@@ -78,8 +78,20 @@ const BROWSER_INIT_SCRIPT = `
   function resizeSvg(markup, newW, newH) {
     const doc = new DOMParser().parseFromString(markup, "image/svg+xml");
     const svg = doc.documentElement;
+    const oldW = parseFloat(svg.getAttribute("width") || "0");
+    const oldH = parseFloat(svg.getAttribute("height") || "0");
     svg.setAttribute("width", String(newW));
     svg.setAttribute("height", String(newH));
+    // If there's a viewBox, scale it proportionally
+    const vb = svg.getAttribute("viewBox");
+    if (vb && oldW && oldH) {
+      const parts = vb.split(/[\\s,]+/).map(Number);
+      if (parts.length === 4) {
+        const scaleX = newW / oldW;
+        const scaleY = newH / oldH;
+        svg.setAttribute("viewBox", parts[0] + " " + parts[1] + " " + (parts[2] * scaleX) + " " + (parts[3] * scaleY));
+      }
+    }
     return new XMLSerializer().serializeToString(svg);
   }
 
@@ -166,6 +178,14 @@ const BROWSER_INIT_SCRIPT = `
       tldrawShapes.push(converted);
     }
 
+    // Validate bind targets before creating anything
+    const shapeIdSet = new Set(tldrawShapes.map(function(s) { return s.id; }));
+    for (let bi = 0; bi < bindings.length; bi++) {
+      if (!shapeIdSet.has(bindings[bi].toId)) {
+        throw new Error("Arrow binding references shape ID '" + bindings[bi].toId + "' which does not exist");
+      }
+    }
+
     // Create all shapes
     ed.createShapes(tldrawShapes);
 
@@ -191,26 +211,15 @@ const BROWSER_INIT_SCRIPT = `
     // If viewport specified, use it for output dimensions but ensure all content is visible.
     // The viewport acts as a minimum size, auto-expanding if shapes extend beyond it.
     if (viewport) {
-      // Compute scene-space bounding box of all shapes
-      let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
-      for (let si = 0; si < drawShapes.length; si++) {
-        const ds = drawShapes[si];
-        const sx = ds.x || 0;
-        const sy = ds.y || 0;
-        const sw = (ds.props && ds.props.w) || 100;
-        const sh = (ds.props && ds.props.h) || 100;
-        minX = Math.min(minX, sx);
-        minY = Math.min(minY, sy);
-        maxX = Math.max(maxX, sx + sw);
-        maxY = Math.max(maxY, sy + sh);
+      // tldraw's getSvgString() already renders all shapes at correct positions.
+      // Just read its natural dimensions and scale for retina.
+      const doc = new DOMParser().parseFromString(svgMarkup, "image/svg+xml");
+      const svg = doc.documentElement;
+      const naturalW = parseFloat(svg.getAttribute("width") || String(result.width));
+      const naturalH = parseFloat(svg.getAttribute("height") || String(result.height));
+      if (scale !== 1) {
+        svgMarkup = resizeSvg(svgMarkup, naturalW * scale, naturalH * scale);
       }
-
-      // Auto-expand viewport to union of camera bounds and shape bounds (with padding)
-      const PAD = 40;
-      const fitW = Math.max(viewport.x + viewport.width, maxX + PAD) - Math.min(viewport.x, minX - PAD);
-      const fitH = Math.max(viewport.y + viewport.height, maxY + PAD) - Math.min(viewport.y, minY - PAD);
-
-      svgMarkup = resizeSvg(svgMarkup, Math.round(fitW * scale), Math.round(fitH * scale));
     } else if (scale !== 1) {
       // Scale up for retina if PNG
       const doc = new DOMParser().parseFromString(svgMarkup, "image/svg+xml");
@@ -224,9 +233,14 @@ const BROWSER_INIT_SCRIPT = `
     const canvas = document.getElementById("canvas");
     canvas.innerHTML = svgMarkup;
 
+    // Get actual rendered dimensions from the SVG element
+    const renderedSvg = canvas.querySelector("svg");
+    const actualW = renderedSvg ? parseFloat(renderedSvg.getAttribute("width")) : (viewport ? viewport.width * scale : result.width);
+    const actualH = renderedSvg ? parseFloat(renderedSvg.getAttribute("height")) : (viewport ? viewport.height * scale : result.height);
+
     return {
-      width: viewport ? viewport.width * scale : result.width,
-      height: viewport ? viewport.height * scale : result.height,
+      width: actualW,
+      height: actualH,
       svg: svgMarkup
     };
   };
