@@ -50,6 +50,9 @@ Use these exact string names in the \`color\` prop.
 ### frame
 \`type: "frame"\` — container frame to group shapes visually.
 
+### image
+\`type: "image"\` — embed an image on the canvas. Provide the image source as a \`src\` prop (base64 data URL or HTTP URL). The renderer handles asset creation automatically.
+
 ---
 
 ## Style Properties
@@ -168,6 +171,26 @@ When using \`bind\`, the start/end props are still needed as fallback positions 
 
 **IMPORTANT:** When a shape has \`parentId\` set to a frame's ID, its \`x,y\` coordinates are RELATIVE to the frame's top-left corner, not the canvas origin.
 Example: A shape at \`x: 30, y: 40\` inside a frame at \`x: 200, y: 100\` appears at canvas position (230, 140).
+
+### image shape
+\`\`\`json
+{
+  "id": "img1", "type": "image", "x": 50, "y": 50,
+  "props": {
+    "w": 800, "h": 600,
+    "src": "https://example.com/screenshot.png"
+  }
+}
+\`\`\`
+The \`src\` prop accepts HTTP URLs or base64 data URLs (\`data:image/png;base64,...\`). The renderer auto-creates tldraw asset records.
+
+## Pattern: Screenshot Annotation
+Layer shapes on TOP of an image to create annotated screenshots:
+1. Place the image shape first (lowest z-order)
+2. Add \`geo\` rectangles with \`fill: "none"\`, \`color: "red"\`, \`dash: "solid"\` as highlight boxes
+3. Add \`arrow\` shapes pointing from labels to highlighted regions
+4. Add \`text\` or \`note\` shapes for callout labels
+This pattern creates diagrams like annotated screenshots with callout arrows and highlight regions.
 
 ---
 

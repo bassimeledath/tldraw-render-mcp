@@ -39,7 +39,7 @@ const BROWSER_INIT_SCRIPT = `
   const ReactDOMClient = await import("https://esm.sh/react-dom@18/client?deps=react@18");
   const tldraw = await import("https://esm.sh/tldraw@4?deps=react@18,react-dom@18");
 
-  const { Tldraw, createShapeId, toRichText } = tldraw;
+  const { Tldraw, createShapeId, toRichText, AssetRecordType } = tldraw;
   const { createElement } = React;
 
   // Store editor reference globally
@@ -179,6 +179,35 @@ const BROWSER_INIT_SCRIPT = `
       if (!shapeIdSet.has(bindings[bi].toId)) {
         throw new Error("Arrow binding references shape ID '" + bindings[bi].toId + "' which does not exist");
       }
+    }
+
+    // Create image assets before shapes (image shapes need asset references)
+    const assets = [];
+    for (let ai = 0; ai < tldrawShapes.length; ai++) {
+      const shape = tldrawShapes[ai];
+      if (shape.type === "image" && shape.props && shape.props.src) {
+        const assetId = AssetRecordType.createId();
+        assets.push({
+          id: assetId,
+          type: "image",
+          typeName: "asset",
+          props: {
+            name: (shape.id || "image") + ".png",
+            src: shape.props.src,
+            w: shape.props.w || 400,
+            h: shape.props.h || 300,
+            mimeType: shape.props.mimeType || "image/png",
+            isAnimated: false,
+          },
+          meta: {},
+        });
+        shape.props.assetId = assetId;
+        delete shape.props.src;
+        delete shape.props.mimeType;
+      }
+    }
+    if (assets.length > 0) {
+      ed.createAssets(assets);
     }
 
     // Create all shapes
