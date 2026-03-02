@@ -62,8 +62,6 @@ After installing, ask Claude to draw:
 - "Create a tldraw diagram of the git branching model"
 - "Sketch a flowchart for user authentication"
 
-![Usage flow: tldraw_read_me → create_tldraw_diagram → render → file](assets/usage-flow.png)
-
 ### `create_tldraw_diagram` parameters
 
 | Parameter | Type | Required | Description |
