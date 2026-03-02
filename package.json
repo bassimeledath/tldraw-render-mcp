@@ -1,0 +1,38 @@
+{
+  "name": "tldraw-render",
+  "version": "1.0.0",
+  "type": "module",
+  "description": "tldraw diagram MCP server with headless PNG/SVG rendering for Claude Code CLI",
+  "license": "MIT",
+  "main": "dist/server.js",
+  "types": "dist/server.d.ts",
+  "bin": {
+    "tldraw-render": "dist/index.js"
+  },
+  "files": [
+    "dist"
+  ],
+  "exports": {
+    ".": {
+      "types": "./dist/server.d.ts",
+      "default": "./dist/server.js"
+    }
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.server.json && bun build server.ts renderer.ts --outdir dist --target node --external agent-browser --external \"agent-browser/dist/browser.js\" --external playwright-core && bun build main.ts --outfile dist/index.js --target node --external \"./server.js\" --external \"./renderer.js\" --external agent-browser --external \"agent-browser/dist/browser.js\" --external playwright-core --banner \"#!/usr/bin/env node\"",
+    "postinstall": "agent-browser install",
+    "setup": "agent-browser install",
+    "serve": "node dist/index.js",
+    "start": "npm run build && npm run serve",
+    "prepublishOnly": "npm run build"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.24.0",
+    "agent-browser": "^0.9.1",
+    "zod": "^4.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "typescript": "^5.9.3"
+  }
+}
