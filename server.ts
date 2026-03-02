@@ -182,7 +182,7 @@ Example: A shape at \`x: 30, y: 40\` inside a frame at \`x: 200, y: 100\` appear
   }
 }
 \`\`\`
-The \`src\` prop accepts HTTP URLs or base64 data URLs (\`data:image/png;base64,...\`). The renderer auto-creates tldraw asset records.
+The \`src\` prop accepts HTTP URLs or base64 data URLs (\`data:image/png;base64,...\`). The renderer auto-creates tldraw asset records. MIME type is inferred from the URL extension. Both \`w\` and \`h\` are required — match the source image's aspect ratio to avoid stretching.
 
 ## Pattern: Screenshot Annotation
 Layer shapes on TOP of an image to create annotated screenshots:
@@ -314,6 +314,7 @@ ALWAYS start with a \`cameraUpdate\` as the FIRST element.
 - **Missing bind targets** — ensure the IDs in \`bind\` match actual shape IDs
 - **Using scene coordinates for frame children** — shapes with \`parentId\` use coordinates relative to the parent frame's top-left, not the canvas origin
 - **Self-referencing arrows** — binding an arrow's start and end to the same shape does not render. Use a text annotation or separate note instead
+- **Image covering overlay shapes** — images are opaque. Place image shapes BEFORE any shapes that should appear on top (array order = z-order)
 `;
 
 /**

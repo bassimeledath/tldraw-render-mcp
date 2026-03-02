@@ -182,28 +182,45 @@ const BROWSER_INIT_SCRIPT = `
     }
 
     // Create image assets before shapes (image shapes need asset references)
+    function guessMimeType(src) {
+      const ext = src.split("?")[0].split(".").pop().toLowerCase();
+      return { jpg: "image/jpeg", jpeg: "image/jpeg", gif: "image/gif",
+               webp: "image/webp", svg: "image/svg+xml", png: "image/png" }[ext] || "image/png";
+    }
+    function guessExtension(mime) {
+      return { "image/jpeg": ".jpg", "image/gif": ".gif", "image/webp": ".webp",
+               "image/svg+xml": ".svg" }[mime] || ".png";
+    }
+
     const assets = [];
     for (let ai = 0; ai < tldrawShapes.length; ai++) {
       const shape = tldrawShapes[ai];
       if (shape.type === "image" && shape.props && shape.props.src) {
+        const src = shape.props.src;
+        if (!src.startsWith("http://") && !src.startsWith("https://") && !src.startsWith("data:image/")) {
+          throw new Error("Image '" + (shape.id || "unknown") + "' has invalid src — must be http(s) URL or data:image/ URI");
+        }
+        const mime = shape.props.mimeType || (src.startsWith("data:") ? (src.split(";")[0].split(":")[1] || "image/png") : guessMimeType(src));
+        const isAnimated = mime === "image/gif" || shape.props.isAnimated === true;
         const assetId = AssetRecordType.createId();
         assets.push({
           id: assetId,
           type: "image",
           typeName: "asset",
           props: {
-            name: (shape.id || "image") + ".png",
-            src: shape.props.src,
+            name: (shape.id || "image") + guessExtension(mime),
+            src: src,
             w: shape.props.w || 400,
             h: shape.props.h || 300,
-            mimeType: shape.props.mimeType || "image/png",
-            isAnimated: false,
+            mimeType: mime,
+            isAnimated: isAnimated,
           },
           meta: {},
         });
         shape.props.assetId = assetId;
         delete shape.props.src;
         delete shape.props.mimeType;
+        delete shape.props.isAnimated;
       }
     }
     if (assets.length > 0) {
@@ -256,6 +273,18 @@ const BROWSER_INIT_SCRIPT = `
     // Insert SVG into canvas div for PNG screenshot
     const canvas = document.getElementById("canvas");
     canvas.innerHTML = svgMarkup;
+
+    // Wait for any embedded images to load before screenshot
+    const embeddedImages = canvas.querySelectorAll("image");
+    if (embeddedImages.length > 0) {
+      await Promise.race([
+        Promise.all([...embeddedImages].map(function(img) {
+          return img.complete ? Promise.resolve() :
+            new Promise(function(r) { img.onload = r; img.onerror = r; });
+        })),
+        new Promise(function(r) { setTimeout(r, 10000); })
+      ]);
+    }
 
     // Get actual rendered dimensions from the SVG element
     const renderedSvg = canvas.querySelector("svg");
