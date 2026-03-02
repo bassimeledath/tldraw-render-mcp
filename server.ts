@@ -127,6 +127,15 @@ This creates proper tldraw binding records automatically.
 \`\`\`
 When using \`bind\`, the start/end props are still needed as fallback positions but will be overridden by the binding.
 
+**Arrow bending:** Add \`"bend": N\` to props to curve the arrow. Positive values curve right, negative curve left. Useful for separating overlapping parallel arrows.
+\`\`\`json
+{
+  "id": "a-curved", "type": "arrow", "x": 0, "y": 0,
+  "props": { "start": {"x":0,"y":0}, "end": {"x":200,"y":0}, "bend": 40, "arrowheadEnd": "arrow" },
+  "bind": { "start": "box1", "end": "box2" }
+}
+\`\`\`
+
 ### text shape
 \`\`\`json
 {
@@ -256,6 +265,11 @@ ALWAYS start with a \`cameraUpdate\` as the FIRST element.
 - **Hub nodes** (shapes with 4+ arrows): increase shape size (w:250+), space neighbors 400+ px apart, keep arrow labels to 1-3 words, or use \`size: "s"\` for arrow text in dense areas
 - For multi-line text in \`mono\` font, set shape height to approximately (number of lines * 28) + 40 for \`size: "m"\`
 - Frame name labels are small by default. For important section labels, add a separate \`text\` shape with \`size: "l"\` above or inside the frame
+- **Dense arrow crossings** between two rows: increase the gap between rows to 120-150px, use \`size: "s"\` for arrows, or use a shared "bus" shape instead of N*M individual arrows
+- Avoid arrows that span 3+ frames — use intermediate relay shapes or \`dash: "dashed"\` with \`size: "s"\` for long-distance connections
+- Frame height minimum: child shape height + 80px (40px top for label, 20px padding each side). Tight frames cause arrow clipping at borders
+- Arrow labels longer than ~8 characters may truncate on short arrows. Use a separate \`text\` shape near the midpoint for longer annotations
+- Minimum shape width to avoid word-breaks: approximately \`character_count * 15 + 30\` pixels for \`size: "m"\` \`font: "sans"\`
 
 ## Common Mistakes
 - **Forgetting cameraUpdate** — without it the export may have wrong dimensions
