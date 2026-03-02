@@ -158,21 +158,26 @@ const BROWSER_INIT_SCRIPT = `
 
       // Collect bind info for arrows
       if (shape.bind) {
-        ["start", "end"].forEach(function(terminal) {
-          if (shape.bind[terminal]) {
-            bindings.push({
-              fromId: id,
-              toId: createShapeId(shape.bind[terminal]),
-              type: "arrow",
-              props: {
-                terminal: terminal,
-                normalizedAnchor: { x: 0.5, y: 0.5 },
-                isExact: false,
-                isPrecise: false
-              }
-            });
-          }
-        });
+        // Detect self-referencing arrows (both terminals bind to the same shape)
+        if (shape.bind.start && shape.bind.end && shape.bind.start === shape.bind.end) {
+          console.warn("Self-referencing arrow '" + shape.id + "' (both terminals bind to '" + shape.bind.start + "') — binding skipped, arrow rendered as standalone");
+        } else {
+          ["start", "end"].forEach(function(terminal) {
+            if (shape.bind[terminal]) {
+              bindings.push({
+                fromId: id,
+                toId: createShapeId(shape.bind[terminal]),
+                type: "arrow",
+                props: {
+                  terminal: terminal,
+                  normalizedAnchor: { x: 0.5, y: 0.5 },
+                  isExact: false,
+                  isPrecise: false
+                }
+              });
+            }
+          });
+        }
       }
 
       tldrawShapes.push(converted);

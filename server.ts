@@ -186,6 +186,8 @@ Use as the FIRST element to set output dimensions. Not a real tldraw shape — i
 
 These are recommended defaults. Choose dimensions that match your content's aspect ratio — portrait (e.g., 800x1400) works for tall flowcharts, wide (e.g., 1400x800) for horizontal layouts.
 
+**Tight fit rule:** Set cameraUpdate width/height to your content's maximum extent plus ~80px padding. Oversized viewports create excess whitespace.
+
 ALWAYS start with a \`cameraUpdate\` as the FIRST element.
 
 ---
@@ -251,6 +253,9 @@ ALWAYS start with a \`cameraUpdate\` as the FIRST element.
 - Leave padding between content and camera edges (50-80px minimum)
 - Draw background shapes first, then foreground — array order = z-order
 - WARNING: \`"size": "s"\` text is unreadable in diagrams wider than 800px. Use \`"m"\` or \`"l"\` for Camera L or larger.
+- **Hub nodes** (shapes with 4+ arrows): increase shape size (w:250+), space neighbors 400+ px apart, keep arrow labels to 1-3 words, or use \`size: "s"\` for arrow text in dense areas
+- For multi-line text in \`mono\` font, set shape height to approximately (number of lines * 28) + 40 for \`size: "m"\`
+- Frame name labels are small by default. For important section labels, add a separate \`text\` shape with \`size: "l"\` above or inside the frame
 
 ## Common Mistakes
 - **Forgetting cameraUpdate** — without it the export may have wrong dimensions
@@ -259,6 +264,7 @@ ALWAYS start with a \`cameraUpdate\` as the FIRST element.
 - **Overlapping elements** — check x,y coordinates carefully so shapes don't stack
 - **Missing bind targets** — ensure the IDs in \`bind\` match actual shape IDs
 - **Using scene coordinates for frame children** — shapes with \`parentId\` use coordinates relative to the parent frame's top-left, not the canvas origin
+- **Self-referencing arrows** — binding an arrow's start and end to the same shape does not render. Use a text annotation or separate note instead
 `;
 
 /**
