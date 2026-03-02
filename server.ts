@@ -184,13 +184,36 @@ Example: A shape at \`x: 30, y: 40\` inside a frame at \`x: 200, y: 100\` appear
 \`\`\`
 The \`src\` prop accepts HTTP URLs or base64 data URLs (\`data:image/png;base64,...\`). The renderer auto-creates tldraw asset records. MIME type is inferred from the URL extension. Both \`w\` and \`h\` are required — match the source image's aspect ratio to avoid stretching.
 
-## Pattern: Screenshot Annotation
-Layer shapes on TOP of an image to create annotated screenshots:
-1. Place the image shape first (lowest z-order)
-2. Add \`geo\` rectangles with \`fill: "none"\`, \`color: "red"\`, \`dash: "solid"\` as highlight boxes
-3. Add \`arrow\` shapes pointing from labels to highlighted regions
-4. Add \`text\` or \`note\` shapes for callout labels
-This pattern creates diagrams like annotated screenshots with callout arrows and highlight regions.
+## Pattern: Screenshot Annotation (IMPORTANT — follow closely)
+To create clean annotated screenshots/images with callout arrows:
+
+**Layout rules:**
+1. Place the image/UI on the LEFT. Size the canvas so the image fills at least 55% of the width. For a 375px phone UI, use a canvas width of ~700px, not 1000px.
+2. Place ALL callout labels in a single vertical column on the right, spaced 80-100px apart (center-to-center). CRITICAL: each label's y-position must be CLOSE to the vertical center of its target highlight (within ±30px). This keeps arrows nearly horizontal and prevents crossing. For dense annotations (5+ labels), increase spacing to 120px.
+3. Each callout is a short \`text\` shape (2-5 words max) — NOT a note or geo box.
+4. Draw ONE arrow per callout, from the label to the highlight box, using \`bind\`. Do NOT put text on the arrows — unlabeled arrows are cleaner. If arrows are <40px apart vertically, omit any arrow text.
+5. Highlight boxes must be SMALL — prefer 80x40 as the default size. Use 60x30 for single values, never exceed 100x50. They pinpoint a specific element (a button, a heading, a value), NOT wrap an entire section.
+6. Highlight boxes must NOT overlap AND must have at least 10px clear space between them. Never share an edge coordinate with another box.
+7. Use only 1-2 highlight colors (red for primary, orange for secondary).
+8. Keep arrows short and nearly horizontal. Use slight \`bend\` (10-15) to separate arrows that are close vertically.
+
+**What NOT to do:**
+- Do NOT place labels on multiple sides of the image — pick ONE side (right is best)
+- Do NOT use note/sticky shapes as callouts — they're too bulky
+- Do NOT highlight more than 4-5 regions
+- Do NOT wrap entire sections in highlight boxes — highlight a specific element INSIDE the section
+- Do NOT make highlight boxes larger than 120px wide — smaller is better
+- Do NOT make the canvas much wider than needed — the UI must dominate the frame
+- Do NOT place arrows that cross each other — align each label's y to its target's y
+
+**Example layout (arrows stay horizontal because label y tracks target y):**
+\`\`\`
+[  UI (55%+ width)  ]  <-- "Nav Bar"       (y ≈ navbar.cy)
+[                    ]  <-- "Search Box"    (y ≈ search.cy)
+[                    ]  <-- "Main Content"  (y ≈ content.cy)
+[                    ]  <-- "Footer"        (y ≈ footer.cy)
+Small highlights (≤120px). Min 80px between labels. Min 10px between boxes.
+\`\`\`
 
 ---
 
